@@ -354,9 +354,11 @@
             popupAnchor: [0, -7]
         });
 
+        const cityMarkers = {};
+
         function createIndustryPopup(city) {
             const industriesHtml = city.industries.map((industry, index) => 
-                `<div class="industry-item" onclick="showCompanies('${city.name}', ${index})">${industry.name}</div>`
+                `<div class="industry-item" data-city="${city.name}" data-industry="${index}">${industry.name}</div>`
             ).join('');
             
             return `
@@ -384,7 +386,7 @@
             return `
                 <div class="popup-header">
                     ${industry.name} - ${city.name}
-                    <button class="back-button" onclick="showIndustries('${city.name}')">← Back</button>
+                    <button class="back-button" data-city="${city.name}">← Back</button>
                 </div>
                 <div class="popup-content">
                     ${companiesHtml}
@@ -392,21 +394,42 @@
             `;
         }
 
-        window.showCompanies = function(cityName, industryIndex) {
+        function showCompanies(cityName, industryIndex) {
             const city = cities.find(c => c.name === cityName);
             const marker = cityMarkers[cityName];
             const popupContent = createCompanyPopup(city, industryIndex);
             marker.setPopupContent(popupContent);
-        };
+            attachPopupEventListeners();
+        }
 
-        window.showIndustries = function(cityName) {
+        function showIndustries(cityName) {
             const city = cities.find(c => c.name === cityName);
             const marker = cityMarkers[cityName];
             const popupContent = createIndustryPopup(city);
             marker.setPopupContent(popupContent);
-        };
+            attachPopupEventListeners();
+        }
 
-        const cityMarkers = {};
+        function attachPopupEventListeners() {
+            // Add event listeners for industry items
+            document.querySelectorAll('.industry-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    L.DomEvent.stopPropagation(e);
+                    const cityName = this.getAttribute('data-city');
+                    const industryIndex = parseInt(this.getAttribute('data-industry'));
+                    showCompanies(cityName, industryIndex);
+                });
+            });
+
+            // Add event listeners for back buttons
+            document.querySelectorAll('.back-button').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    L.DomEvent.stopPropagation(e);
+                    const cityName = this.getAttribute('data-city');
+                    showIndustries(cityName);
+                });
+            });
+        }
 
         cities.forEach(city => {
             const marker = L.marker([city.lat, city.lng], {
@@ -422,13 +445,20 @@
                 className: 'custom-popup',
                 closeButton: true,
                 autoClose: false,
+                closeOnClick: false,
                 closeOnEscapeKey: true
             });
 
             marker.on('click', function(e) {
+                L.DomEvent.stopPropagation(e);
                 const resetContent = createIndustryPopup(city);
                 this.setPopupContent(resetContent);
                 this.openPopup();
+                setTimeout(attachPopupEventListeners, 50);
+            });
+
+            marker.on('popupopen', function(e) {
+                setTimeout(attachPopupEventListeners, 50);
             });
         });
 
