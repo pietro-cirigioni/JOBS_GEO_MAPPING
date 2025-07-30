@@ -395,20 +395,22 @@
         }
 
         function showCompanies(cityName, industryIndex) {
-            const city = cities.find(c => c.name === cityName);
-            const marker = cityMarkers[cityName];
-            const popupContent = createCompanyPopup(city, industryIndex);
-            marker.setPopupContent(popupContent);
-            attachPopupEventListeners();
-        }
+    const city = cities.find(c => c.name === cityName);
+    const marker = cityMarkers[cityName];
+    const popupContent = createCompanyPopup(city, industryIndex);
+    marker.setPopupContent(popupContent);
+    marker.openPopup(); // Ensures the popup stays open!
+    attachPopupEventListeners();
+}
 
-        function showIndustries(cityName) {
-            const city = cities.find(c => c.name === cityName);
-            const marker = cityMarkers[cityName];
-            const popupContent = createIndustryPopup(city);
-            marker.setPopupContent(popupContent);
-            attachPopupEventListeners();
-        }
+function showIndustries(cityName) {
+    const city = cities.find(c => c.name === cityName);
+    const marker = cityMarkers[cityName];
+    const popupContent = createIndustryPopup(city);
+    marker.setPopupContent(popupContent);
+    marker.openPopup(); // Ensures the popup stays open!
+    attachPopupEventListeners();
+}
 
         function attachPopupEventListeners() {
             // Add event listeners for industry items
